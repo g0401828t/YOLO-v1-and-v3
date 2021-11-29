@@ -91,12 +91,12 @@ def main():
     loss_fn = YoloLoss_v3()
     scaler = torch.cuda.amp.GradScaler()
 
-    # train_loader, test_loader, train_eval_loader = get_loaders(
-    #     train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv"
-    # )
-    train_loader, test_loader, train_eval_loader = get_loaders_custom(
+    train_loader, test_loader, train_eval_loader = get_loaders(
         train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv"
     )
+    # train_loader, test_loader, train_eval_loader = get_loaders_custom(
+    #     train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv"
+    # )
 
     if config.LOAD_MODEL:
         load_checkpoint(
@@ -116,9 +116,6 @@ def main():
 
         mean_loss, mean_box_loss, mean_obj_loss, mean_noobj_loss, mean_class_loss \
             = train_fn(test_loader, model, optimizer, loss_fn, scaler, scaled_anchors)  # for testing train without augmentations
-        # mean_loss, mean_box_loss, mean_obj_loss, mean_class_loss \
-        #             = train_fn(test_loader, model, optimizer, loss_fn, scaler, scaled_anchors)  # for testing train without augmentations
-
 
         #print(f"Currently epoch {epoch}")
         #print("On Train Eval loader:")
@@ -160,7 +157,7 @@ def main():
         
         
             if config.SAVE_MODEL and mapval.item() > 0.99:
-                save_checkpoint(model, optimizer, filename=f"checkpoint.pth.tar")
+                save_checkpoint(model, optimizer, filename=f"checkpoint.pth")
 
 
 if __name__ == "__main__":
