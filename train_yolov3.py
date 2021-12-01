@@ -91,12 +91,12 @@ def main():
     loss_fn = YoloLoss_v3()
     scaler = torch.cuda.amp.GradScaler()
 
-    train_loader, test_loader, train_eval_loader = get_loaders(
-        train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv"
-    )
-    # train_loader, test_loader, train_eval_loader = get_loaders_custom(
+    # train_loader, test_loader, train_eval_loader = get_loaders(
     #     train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv"
     # )
+    train_loader, test_loader, train_eval_loader = get_loaders_custom(
+        train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv"
+    )
 
     if config.LOAD_MODEL:
         load_checkpoint(
@@ -124,8 +124,10 @@ def main():
 
         # validation
         if epoch > 0 and epoch % 10 == 0:
+            # confscore 0.4 기본
+            # Check Accuracy
             class_acc, noobj_acc, obj_acc = check_class_accuracy(model, test_loader, threshold=config.CONF_THRESHOLD)
-          # Non Maximum Suppression
+            # Non Maximum Suppression                                                
             pred_boxes, true_boxes = get_evaluation_bboxes(
                 test_loader,
                 model,
@@ -143,6 +145,134 @@ def main():
                 num_classes=config.NUM_CLASSES,
             )
             print(f"MAP: {mapval.item()}")
+
+
+            # confscore 0.5
+            CONF_THRESHOLD = 0.5
+            # Check Accuracy
+            _, _, _ = check_class_accuracy(model, test_loader, threshold=CONF_THRESHOLD)
+             # Non Maximum Suppression                                                
+            pred_boxes, true_boxes = get_evaluation_bboxes(
+                test_loader,
+                model,
+                iou_threshold=config.NMS_IOU_THRESH,
+                anchors=config.ANCHORS,
+                threshold=CONF_THRESHOLD,
+            )
+            # Mean Average Precision
+            print("pred box:", len(pred_boxes))
+            mapval_5 = mean_average_precision(
+                pred_boxes,
+                true_boxes,
+                iou_threshold=config.MAP_IOU_THRESH,
+                box_format="midpoint",
+                num_classes=config.NUM_CLASSES,
+            )
+            print(f"MAP: {mapval_5.item()}")
+
+
+            # confscore 0.6
+            CONF_THRESHOLD = 0.6
+            # Check Accuracy
+            _, _, _ = check_class_accuracy(model, test_loader, threshold=CONF_THRESHOLD)
+            # Non Maximum Suppression                                                 
+            pred_boxes, true_boxes = get_evaluation_bboxes(
+                test_loader,
+                model,
+                iou_threshold=config.NMS_IOU_THRESH,
+                anchors=config.ANCHORS,
+                threshold=CONF_THRESHOLD,
+            )
+            # Mean Average Precision
+            print("pred box:", len(pred_boxes))
+            mapval_6 = mean_average_precision(
+                pred_boxes,
+                true_boxes,
+                iou_threshold=config.MAP_IOU_THRESH,
+                box_format="midpoint",
+                num_classes=config.NUM_CLASSES,
+            )
+            print(f"MAP: {mapval_6.item()}")
+
+
+            # confscore 0.7
+            CONF_THRESHOLD = 0.7
+            # Check Accuracy
+            _, _, _ = check_class_accuracy(model, test_loader, threshold=CONF_THRESHOLD)
+            # Non Maximum Suppression                                                 
+            pred_boxes, true_boxes = get_evaluation_bboxes(
+                test_loader,
+                model,
+                iou_threshold=config.NMS_IOU_THRESH,
+                anchors=config.ANCHORS,
+                threshold=CONF_THRESHOLD,
+            )
+            # Mean Average Precision
+            print("pred box:", len(pred_boxes))
+            mapval_7 = mean_average_precision(
+                pred_boxes,
+                true_boxes,
+                iou_threshold=config.MAP_IOU_THRESH,
+                box_format="midpoint",
+                num_classes=config.NUM_CLASSES,
+            )
+            print(f"MAP: {mapval_7.item()}")
+
+
+            # confscore 0.8
+            CONF_THRESHOLD = 0.8
+            # Check Accuracy
+            _, _, _ = check_class_accuracy(model, test_loader, threshold=CONF_THRESHOLD)
+            # Non Maximum Suppression                                                 
+            pred_boxes, true_boxes = get_evaluation_bboxes(
+                test_loader,
+                model,
+                iou_threshold=config.NMS_IOU_THRESH,
+                anchors=config.ANCHORS,
+                threshold=CONF_THRESHOLD,
+            )
+            # Mean Average Precision
+            print("pred box:", len(pred_boxes))
+            mapval_8 = mean_average_precision(
+                pred_boxes,
+                true_boxes,
+                iou_threshold=config.MAP_IOU_THRESH,
+                box_format="midpoint",
+                num_classes=config.NUM_CLASSES,
+            )
+            print(f"MAP: {mapval_8.item()}")
+
+            
+            # confscore 0.9
+            CONF_THRESHOLD = 0.9
+            # Check Accuracy
+            _, _, _ = check_class_accuracy(model, test_loader, threshold=CONF_THRESHOLD)
+            # Non Maximum Suppression                                                 
+            pred_boxes, true_boxes = get_evaluation_bboxes(
+                test_loader,
+                model,
+                iou_threshold=config.NMS_IOU_THRESH,
+                anchors=config.ANCHORS,
+                threshold=CONF_THRESHOLD,
+            )
+            # Mean Average Precision
+            print("pred box:", len(pred_boxes))
+            mapval_9 = mean_average_precision(
+                pred_boxes,
+                true_boxes,
+                iou_threshold=config.MAP_IOU_THRESH,
+                box_format="midpoint",
+                num_classes=config.NUM_CLASSES,
+            )
+            print(f"MAP: {mapval_9.item()}")
+
+
+
+
+
+
+
+
             wandb.log({
                 "Total Loss": mean_loss,
                 "Box Loss" : mean_box_loss,
@@ -152,7 +282,13 @@ def main():
                 "class_acc": class_acc,
                 "noobj_acc": noobj_acc,
                 "obj_acc": obj_acc,
-                "MAP": mapval.item()})
+                "MAP": mapval.item(),
+                "MAP5": mapval_5.item(),
+                "MAP6": mapval_6.item(),
+                "MAP7": mapval_7.item(),
+                "MAP8": mapval_8.item(),
+                "MAP9": mapval_9.item(),
+                })
             model.train()
         
         

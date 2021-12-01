@@ -174,7 +174,7 @@ class YOLOCustomDataset(Dataset):
                                 cell_cx, cell_cy = (jj / S) + (1/(2*S)), (ii / S) + (1/(2*S))
                                 distance = ((x - cell_cx) ** 2) + ((y - cell_cy) ** 2)
                                 normalized_distance = distance / c2     # normalized by bbox
-                                score = (normalized_distance - 1) ** 300
+                                score = (normalized_distance - 1) ** 600
                                 # normalized_distance = np.trunc(score*10) / 10 # 소수점 1자리 이하 삭제
                                 # normalized_distance = distance / 1      # normalized by image size (=1)
                                 if ii == i and jj == j:                                                       # assign bbox for center point
@@ -351,7 +351,7 @@ def test():
                 y[i], is_preds=False, S=y[i].shape[2], anchors=anchor
             )[0]
         # boxes = nms(boxes, iou_threshold=1, threshold=0.7, box_format="midpoint")
-        boxes = nms(boxes, iou_threshold=1, threshold=0.9, box_format="midpoint")
+        boxes = nms(boxes, iou_threshold=1, threshold=0.8, box_format="midpoint")
         # print("boxes", boxes)
         plot_image(x[0].permute(1, 2, 0).to("cpu"), boxes)
         print("=========================================================")

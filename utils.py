@@ -103,7 +103,7 @@ def non_max_suppression(bboxes, iou_threshold, threshold, box_format="corners"):
     assert type(bboxes) == list
 
     bboxes = [box for box in bboxes if box[1] >= threshold]  # objectness prob 가 threshold 이하이면 제거
-    print("boxes higher conf than threshold(", threshold, "):", len(bboxes))
+    # print("boxes higher conf than threshold(", threshold, "):", len(bboxes))
     bboxes = sorted(bboxes, key=lambda x: x[1], reverse=True)[:300]  # objectness prob 내림차순으로 정렬, 상위 max_boxes까지만 가져온다.
     bboxes_after_nms = []
 
