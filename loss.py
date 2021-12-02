@@ -190,11 +190,108 @@ class YoloLoss_v3(nn.Module):
     def forward(self, predictions, target, anchors):
         obj = target[..., 0] == 1           #  [B, 3, S, S]
         noobj = target[..., 0] == 0
+
+        # ========================= #
+        #       No object loss      #   
+        # ========================= #
+        no_object_loss = self.bce(
+            (predictions[..., 0:1][noobj]), (target[..., 0:1][noobj])
+        )
+        no_object_loss = no_object_loss
+
+        # ========================= #
+        #        Object loss        # 
+        # ========================= #
+        anchors = anchors.reshape(1, 3, 1, 1, 2)  # (3, 2) -> (1, 3, 1, 1, 2)  
+        box_preds = torch.cat([self.sigmoid(predictions[..., 1:3]), torch.exp(predictions[..., 3:5]) * anchors], dim=-1)        # for calculating p_w * exp(t_w)
+        ious = intersection_over_union(box_preds[obj], target[..., 1:5][obj]).detach()
+        object_loss = self.bce((predictions[..., 0:1][obj]), (ious * target[..., 0:1][obj]))
+        # object_loss = self.bce((predictions[..., 0:1][obj]), (target[..., 0:1][obj]))                         # without iou computations
+
+        # object_loss = self.bce((predictions[..., 0:1][soft_mask]), (target[..., 0:1][soft_mask]))           # without iou computations (soft mask)
+
+
+        # ========================= #
+        #    Box Coordinate loss    # 
+        # ========================= # 
+        predictions[..., 1:3] = self.sigmoid(predictions[..., 1:3])
+        target[..., 3:5] = torch.log(                             # for calculating: w = p_w * exp(t_w)
+            (1e-6 + target[..., 3:5] / anchors)
+        )
+        box_loss = self.mse(predictions[..., 1:5][obj], target[..., 1:5][obj])                                  # obj == 1
+        # ciou_loss = intersection_over_union(predictions[..., 1:5][obj], target[..., 1:5][obj], CIOU=True)
+        # box_loss = (1 - ciou_loss).mean()
+
+
+        # ========================= #
+        #        Class loss         #   
+        # ========================= #
+        class_loss = self.entropy(
+            (predictions[..., 5:][obj]), (target[..., 5][obj].long()),
+        )
+        # class_loss = self.entropy(
+        #     (predictions[..., 5:][cls_mask]), (target[..., 5][cls_mask].long()),                                # obj == 0.9
+        # )
+
+        # return(
+        #     self.lambda_box * box_loss
+        #     + self.lambda_obj * object_loss
+        #     + self.lambda_noobj * no_object_loss
+        #     + self.lambda_class * class_loss
+        # )
+        # return self.lambda_box * box_loss, self.lambda_obj * object_loss, self.lambda_noobj * no_object_loss, self.lambda_class * class_loss
+        return self.lambda_box * box_loss, self.lambda_obj * object_loss, self.lambda_noobj * no_object_loss, self.lambda_class * class_loss
+
+
+
+
+# Loss for single scale
+class YoloLoss_v3_custom(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.bce = nn.BCEWithLogitsLoss()
+        self.entropy = nn.CrossEntropyLoss()
+        self.sigmoid = nn.Sigmoid()
+        self.smoothl1 = nn.SmoothL1Loss(beta=0.05)
+
+        # # constants => mse for box_loss
+        # self.lambda_class = 1
+        # self.lambda_noobj = 10
+        # self.lambda_obj = 1
+        # # self.lambda_box = 10
+        # # self.lambda_box = 1      # box 가 믾아쟈사 box_loss값이 커져서 낮춰주자. 0.01은 너무 작아서 10 -> 0.01 -> 1
+        # self.lambda_box = 5      # box 가 믾아쟈사 box_loss값이 커져서 낮춰주자. 0.01은 너무 작아서 10 -> 0.01 -> 1 -> 5
+
+        # # constants => ciou for box_loss
+        # self.lambda_class = 0.5
+        # self.lambda_noobj = 10
+        # self.lambda_obj = 1
+        # self.lambda_box = 0.5
+
+        # # constants => mse for box_loss
+        # self.lambda_class = 0.5
+        # self.lambda_obj = 1
+        # self.lambda_box = 0.05
+
+        # # constants => mse for box_loss
+        # self.lambda_class = 1
+        # self.lambda_noobj = 10
+        # self.lambda_obj = 500      # objloss 가 증가 한다 pred를 다 0으로 해야 전체 loss가 줄어든다고 생각해서 이 loss 증가한다고 판단하여 1 에서 100으로 바꿈 -> 500
+        # self.lambda_box = 5      # box 가 믾아쟈사 box_loss값이 커져서 낮춰주자. 0.01은 너무 작아서 10 -> 0.01 -> 1 -> 5
+        
+        # constants => mse for box_loss
+        self.lambda_class = 1
+        self.lambda_noobj = 10
+        self.lambda_obj = 1      
+        self.lambda_box = 10      
+
+    def forward(self, predictions, target, anchors):
+        obj = target[..., 0] == 1           #  [B, 3, S, S]
+        noobj = target[..., 0] == 0
         # noobj = (target[..., 0] < 1) * (target[...,0] >= 0)
         soft_mask = (target[...,0] > 0 ) * (target[...,0] < 1)
         # cls_mask = target[..., 0] >= 0.9
-
-
 
 
         anchors = anchors.reshape(1, 3, 1, 1, 2)  # (3, 2) -> (1, 3, 1, 1, 2)

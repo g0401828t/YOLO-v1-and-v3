@@ -160,7 +160,7 @@ class YOLOCustomDataset(Dataset):
                     if last_cell_y == S:
                         last_cell_y -= 1
 
-                    c2 = width ** 2 + height ** 2
+                    c2 = np.sqrt(width ** 2 + height ** 2)
 
                     x_cell, y_cell = S*x - j, S*y - i                       # x, y value in cell. values between [0, 1]
                     width_cell, height_cell = width * S, height * S         # w, h value for scale S
@@ -168,14 +168,20 @@ class YOLOCustomDataset(Dataset):
                         [x_cell, y_cell, width_cell, height_cell]
                     )
                     """for each cell bounded by bounding box"""
-                    for jj in range(first_cell_x, last_cell_x + 1):
-                        for ii in range(first_cell_y, last_cell_y + 1):
+                    for jj in range(first_cell_x + 1, last_cell_x):
+                        for ii in range(first_cell_y + 1, last_cell_y):
                             if targets[scale_idx][anchor_on_scale, ii, jj, 0] != 1:             # neighbor cell이 다른 bbox의 center가 아닐경우
                                 cell_cx, cell_cy = (jj / S) + (1/(2*S)), (ii / S) + (1/(2*S))
-                                distance = ((x - cell_cx) ** 2) + ((y - cell_cy) ** 2)
+                                distance = np.sqrt(((x - cell_cx) ** 2) + ((y - cell_cy) ** 2))
                                 normalized_distance = distance / c2     # normalized by bbox
-                                score = (normalized_distance - 1) ** 300
-                                # normalized_distance = np.trunc(score*10) / 10 # 소수점 1자리 이하 삭제
+
+                                # normalized_distance = np.sqrt((((x - cell_cx)/(width/2)) ** 2) + (((y - cell_cy)/(height/2)) ** 2))
+                                score = (normalized_distance - 1) ** 30 # 400        # 제곱근으로 해준다음에는 더 작은 값으로 제곱해도됨
+                                # score = np.trunc(score1*10) / 10 # 소수점 1자리 이하 삭제
+                                # print("score1: ", score1)
+                                # print("score: ", score)
+                                # if score >= 1:
+                                #     print(normalized_distance, score, score)
                                 # normalized_distance = distance / 1      # normalized by image size (=1)
                                 if ii == i and jj == j:                                                       # assign bbox for center point
                                     # print("===========found center point!!")
@@ -350,8 +356,8 @@ def test():
             boxes += cells_to_bboxes(
                 y[i], is_preds=False, S=y[i].shape[2], anchors=anchor
             )[0]
+        boxes = nms(boxes, iou_threshold=1, threshold=0.5, box_format="midpoint")
         # boxes = nms(boxes, iou_threshold=1, threshold=0.7, box_format="midpoint")
-        boxes = nms(boxes, iou_threshold=1, threshold=0.9, box_format="midpoint")
         # print("boxes", boxes)
         plot_image(x[0].permute(1, 2, 0).to("cpu"), boxes)
         print("=========================================================")

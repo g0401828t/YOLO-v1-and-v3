@@ -8,7 +8,7 @@ from utils import seed_everything
 DATASET = '../dataset/pascalvoc'
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # seed_everything()  # If you want deterministic behavior
-NUM_WORKERS = 4
+NUM_WORKERS = 8 # 4
 BATCH_SIZE = 32
 IMAGE_SIZE = 416
 NUM_CLASSES = 20
@@ -20,9 +20,9 @@ MAP_IOU_THRESH = 0.5
 NMS_IOU_THRESH = 0.45
 S = [IMAGE_SIZE // 32, IMAGE_SIZE // 16, IMAGE_SIZE // 8]       # [13, 26, 52]
 PIN_MEMORY = True
-LOAD_MODEL = False
+LOAD_MODEL = True
 SAVE_MODEL = True
-CHECKPOINT_FILE = "checkpoint.pth.tar"
+CHECKPOINT_FILE = "ours_checkpoint.pth"
 IMG_DIR = DATASET + "/images/"
 LABEL_DIR = DATASET + "/labels/"
 
@@ -49,7 +49,7 @@ train_transforms = A.Compose(
                 A.ShiftScaleRotate(
                     rotate_limit=20, p=0.5, border_mode=cv2.BORDER_CONSTANT
                 ),
-                A.Affine(shear=15, p=0.5, mode="constant"),
+                A.Affine(shear=15, p=0.5, mode=cv2.BORDER_CONSTANT),
             ],
             p=1.0,
         ),
