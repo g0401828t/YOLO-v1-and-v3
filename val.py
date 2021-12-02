@@ -25,16 +25,24 @@ def main():
         model.parameters(), lr=config.LEARNING_RATE, weight_decay=config.WEIGHT_DECAY
     )
 
+    # ================ #
+    # train: 16552
+    # test: 4952
     # _, test_loader, _ = get_loaders_custom(
     #     train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv", batch_size=None
     # )
+    # _, test_loader, _ = get_loaders(
+    #     train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv", batch_size=1
+    # )
     _, test_loader, _ = get_loaders(
-        train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv", batch_size=1
+        train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/test.csv", batch_size=None
     )
 
 
-    CHECKPOINT_FILE = "plain_checkpoint100.pth"
+
+    # CHECKPOINT_FILE = "plain_checkpoint100.pth"
     # CHECKPOINT_FILE = "custom_checkpoint100.pth"
+    CHECKPOINT_FILE = "plain_checkpoint43223.pth"
     if config.LOAD_MODEL:
         load_checkpoint(
             CHECKPOINT_FILE, model, optimizer, config.LEARNING_RATE
