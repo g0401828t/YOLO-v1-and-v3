@@ -8,14 +8,14 @@ from utils import seed_everything
 DATASET = '../dataset/pascalvoc'
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # seed_everything()  # If you want deterministic behavior
-NUM_WORKERS = 0 # 8 # 4
+NUM_WORKERS = 8 # 8 # 4
 BATCH_SIZE = 32
 IMAGE_SIZE = 416
 NUM_CLASSES = 20
-LEARNING_RATE = 3e-4 # 1e-3 # mse 이것도 낫밷 1e-3 # mse 기본 2e-4  #3e-4  # 1e-5
+LEARNING_RATE = 1e-5 # 3e-4 # 1e-3 # mse 이것도 낫밷 1e-3 # mse 기본 2e-4  #3e-4  # 1e-5
 WEIGHT_DECAY = 1e-4
 NUM_EPOCHS = 500
-CONF_THRESHOLD = 0.4 # 0.9 # 0.4 # 0.6 # 0.9 # 0.4  # 0.05
+CONF_THRESHOLD = 0.2 # 0.4 # 0.9 # 0.4 # 0.6 # 0.9 # 0.4  # 0.05
 MAP_IOU_THRESH = 0.5
 NMS_IOU_THRESH = 0.45
 S = [IMAGE_SIZE // 32, IMAGE_SIZE // 16, IMAGE_SIZE // 8]       # [13, 26, 52]

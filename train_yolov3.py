@@ -101,12 +101,12 @@ def main():
     # )
 
     # =======  Load custom dataset  ======= #
-    # train_loader, test_loader, train_eval_loader = get_loaders_custom(
-    #     train_csv_path=config.DATASET + "/train.csv", test_csv_path=config.DATASET + "/test.csv", batch_size=None
-    # )
     train_loader, test_loader, train_eval_loader = get_loaders_custom(
-        train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv", batch_size=None
+        train_csv_path=config.DATASET + "/train.csv", test_csv_path=config.DATASET + "/test.csv", batch_size=None
     )
+    # train_loader, test_loader, train_eval_loader = get_loaders_custom(
+    #     train_csv_path=config.DATASET + "/100examples.csv", test_csv_path=config.DATASET + "/100examples.csv", batch_size=None
+    # )
 
 
     # CHECKPOINT_FILE = "plain_checkpoint.pth"
@@ -127,21 +127,21 @@ def main():
         # train_fn(train_loader, model, optimizer, loss_fn, scaler, scaled_anchors)
 
 
-        mean_loss, mean_box_loss, mean_obj_loss, mean_noobj_loss, mean_class_loss \
-            = train_fn(test_loader, model, optimizer, loss_fn, scaler, scaled_anchors)  # for testing train with 100 examples without augmentations
         # mean_loss, mean_box_loss, mean_obj_loss, mean_noobj_loss, mean_class_loss \
-        #     = train_fn(train_loader, model, optimizer, loss_fn, scaler, scaled_anchors)  # for training with augmentation
+        #     = train_fn(test_loader, model, optimizer, loss_fn, scaler, scaled_anchors)  # for testing train with 100 examples without augmentations
+        mean_loss, mean_box_loss, mean_obj_loss, mean_noobj_loss, mean_class_loss \
+            = train_fn(train_loader, model, optimizer, loss_fn, scaler, scaled_anchors)  # for training with augmentation
 
         #print(f"Currently epoch {epoch}")
         #print("On Train Eval loader:")        # validation
         if epoch > 0 and epoch % 10 == 0:
         # if epoch % 1 == 0:
-            print("================= On Train loader:")
-            train_class_acc, train_noobj_acc, train_obj_acc = check_class_accuracy(model, train_loader, threshold=config.CONF_THRESHOLD)
+            # print("================= On Train loader:")
+            # train_class_acc, train_noobj_acc, train_obj_acc = check_class_accuracy(model, train_loader, threshold=config.CONF_THRESHOLD)
 
             print("================= On Test loader:")
-            # confscore 0.4 기본
-            print("=============Conf Threshold 0.4")
+            # confscore 0.2 기본
+            print("=============Conf Threshold 0.2")
             # Check Accuracy
             # class_acc, noobj_acc, obj_acc = check_class_accuracy(model, test_loader, threshold=config.CONF_THRESHOLD)
             # # Non Maximum Suppression                                                
@@ -168,12 +168,12 @@ def main():
                 box_format="midpoint",
                 num_classes=config.NUM_CLASSES,
             )
-            print(f"MAP4: {mapval.item()}")
+            print(f"MAP2: {mapval.item()}")
 
 
-            # confscore 0.5
-            print("=============Conf Threshold 0.5")
-            CONF_THRESHOLD = 0.5
+            # confscore 0.4
+            print("=============Conf Threshold 0.4")
+            CONF_THRESHOLD = 0.4
             # # Check Accuracy
             # _, _, obj_acc5 = check_class_accuracy(model, test_loader, threshold=CONF_THRESHOLD)
             #  # Non Maximum Suppression                                                
@@ -184,7 +184,7 @@ def main():
             #     anchors=config.ANCHORS,
             #     threshold=CONF_THRESHOLD,
             # )                                               
-            pred_boxes, true_boxes, _, _, obj_acc5 = get_evaluation_bboxes_accuracy(
+            pred_boxes, true_boxes, _, _, obj_acc4 = get_evaluation_bboxes_accuracy(
                 test_loader,
                 model,
                 iou_threshold=config.NMS_IOU_THRESH,
@@ -193,14 +193,14 @@ def main():
             )
             # Mean Average Precision
             print("pred box:", len(pred_boxes))
-            mapval_5 = mean_average_precision(
+            mapval_4 = mean_average_precision(
                 pred_boxes,
                 true_boxes,
                 iou_threshold=config.MAP_IOU_THRESH,
                 box_format="midpoint",
                 num_classes=config.NUM_CLASSES,
             )
-            print(f"MAP5: {mapval_5.item()}")
+            print(f"MAP4: {mapval_4.item()}")
 
 
             # confscore 0.6
@@ -235,36 +235,36 @@ def main():
             print(f"MAP6: {mapval_6.item()}")
 
 
-            # confscore 0.7
-            print("=============Conf Threshold 0.7")
-            CONF_THRESHOLD = 0.7
-            # # Check Accuracy
-            # _, _, obj_acc7 = check_class_accuracy(model, test_loader, threshold=CONF_THRESHOLD)
-            # # Non Maximum Suppression                                                 
-            # pred_boxes, true_boxes = get_evaluation_bboxes(
+            # # confscore 0.7
+            # print("=============Conf Threshold 0.7")
+            # CONF_THRESHOLD = 0.7
+            # # # Check Accuracy
+            # # _, _, obj_acc7 = check_class_accuracy(model, test_loader, threshold=CONF_THRESHOLD)
+            # # # Non Maximum Suppression                                                 
+            # # pred_boxes, true_boxes = get_evaluation_bboxes(
+            # #     test_loader,
+            # #     model,
+            # #     iou_threshold=config.NMS_IOU_THRESH,
+            # #     anchors=config.ANCHORS,
+            # #     threshold=CONF_THRESHOLD,
+            # # )                                               
+            # pred_boxes, true_boxes, _, _, obj_acc7 = get_evaluation_bboxes_accuracy(
             #     test_loader,
             #     model,
             #     iou_threshold=config.NMS_IOU_THRESH,
             #     anchors=config.ANCHORS,
             #     threshold=CONF_THRESHOLD,
-            # )                                               
-            pred_boxes, true_boxes, _, _, obj_acc7 = get_evaluation_bboxes_accuracy(
-                test_loader,
-                model,
-                iou_threshold=config.NMS_IOU_THRESH,
-                anchors=config.ANCHORS,
-                threshold=CONF_THRESHOLD,
-            )
-            # Mean Average Precision
-            print("pred box:", len(pred_boxes))
-            mapval_7 = mean_average_precision(
-                pred_boxes,
-                true_boxes,
-                iou_threshold=config.MAP_IOU_THRESH,
-                box_format="midpoint",
-                num_classes=config.NUM_CLASSES,
-            )
-            print(f"MAP7: {mapval_7.item()}")
+            # )
+            # # Mean Average Precision
+            # print("pred box:", len(pred_boxes))
+            # mapval_7 = mean_average_precision(
+            #     pred_boxes,
+            #     true_boxes,
+            #     iou_threshold=config.MAP_IOU_THRESH,
+            #     box_format="midpoint",
+            #     num_classes=config.NUM_CLASSES,
+            # )
+            # print(f"MAP7: {mapval_7.item()}")
 
 
             # confscore 0.8
@@ -344,32 +344,33 @@ def main():
                 "No Obj Loss" : mean_noobj_loss,
                 "Class Loss" : mean_class_loss,
 
-                "train_class_acc" : train_class_acc, 
-                "train_noobj_acc" : train_noobj_acc, 
-                "train_obj_acc" : train_obj_acc,
+                # "train_class_acc" : train_class_acc, 
+                # "train_noobj_acc" : train_noobj_acc, 
+                # "train_obj_acc" : train_obj_acc,
 
                 "class_acc": class_acc,
                 "noobj_acc": noobj_acc,
-                "obj_acc": obj_acc,
-                "obj_acc5": obj_acc5,
+                "obj_acc2": obj_acc,
+                "obj_acc4": obj_acc4,
                 "obj_acc6": obj_acc6,
-                "obj_acc7": obj_acc7,
+                # "obj_acc7": obj_acc7,
                 "obj_acc8": obj_acc8,
                 "obj_acc9": obj_acc9,
 
-                "MAP": mapval.item(),
-                "MAP5": mapval_5.item(),
+                "MAP2": mapval.item(),
+                "MAP4": mapval_4.item(),
                 "MAP6": mapval_6.item(),
-                "MAP7": mapval_7.item(),
+                # "MAP7": mapval_7.item(),
                 "MAP8": mapval_8.item(),
                 "MAP9": mapval_9.item(),
                 })
             model.train()
         
         
-            print("best map:", best_map, " now map:", mapval.item(), mapval_5.item(), mapval_6.item(), mapval_7.item(), mapval_8.item(), mapval_9.item())
+            # print("best map:", best_map, " now map:", mapval.item(), mapval_5.item(), mapval_6.item(), mapval_7.item(), mapval_8.item(), mapval_9.item())
+            print("best map:", best_map, " now map:", mapval.item(), mapval_4.item(), mapval_6.item(), mapval_8.item(), mapval_9.item())
             # print("best map:", best_map, " now map:", mapval.item())
-            if config.SAVE_MODEL and (best_map < mapval.item() or best_map < mapval_5.item() or best_map < mapval_6.item() or best_map < mapval_7.item() or best_map < mapval_8.item() or best_map < mapval_9.item()):
+            if config.SAVE_MODEL:
                 print("model saved")
                 save_checkpoint(model, optimizer, filename=f"checkpoint.pth")
             # if config.SAVE_MODEL and (best_map < mapval.item()):
@@ -379,7 +380,10 @@ def main():
 
 
 if __name__ == "__main__":
-    wandb.init()
+    wandb.init(
+        project= "object_detection_trial",
+        name = "custom_full_run"
+    )
     main()
 
 

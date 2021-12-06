@@ -343,9 +343,10 @@ class YoloLoss_v3_custom(nn.Module):
         # no_object_loss = self.lambda_noobj * noobj_loss + soft_loss
 
         # # trial 6 : softing on no obj loss 제발 되어라...
-        box_preds = torch.cat([self.sigmoid(predictions[..., 1:3]), torch.exp(predictions[..., 3:5]) * anchors], dim=-1)        
-        ious = intersection_over_union(box_preds[obj], target[..., 1:5][obj]).detach()
-        object_loss = self.bce((predictions[..., 0:1][obj]), (ious * target[..., 0:1][obj]))
+        # box_preds = torch.cat([self.sigmoid(predictions[..., 1:3]), torch.exp(predictions[..., 3:5]) * anchors], dim=-1)        
+        # ious = intersection_over_union(box_preds[obj], target[..., 1:5][obj]).detach()
+        # object_loss = self.bce((predictions[..., 0:1][obj]), (ious * target[..., 0:1][obj]))
+        object_loss = self.bce((predictions[..., 0:1][obj]), (target[..., 0:1][obj]))
         
         noobj_loss = -(1-target[...,0:1][noobj]) * torch.log(1 - self.sigmoid(predictions[..., 0:1][noobj]) + 1e-6)
         soft_noobj_loss = -(1-target[...,0:1][soft_mask]) * torch.log(1 - self.sigmoid(predictions[..., 0:1][soft_mask]) + 1e-6)
